@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SENTINEL — Apply Queue</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#07070d;--s1:#0f0f1a;--s2:#161625;--s3:#1e1e30;
+  --border:#ffffff12;--border2:#ffffff1f;
+  --green:#00e676;--amber:#ffc107;--red:#ff5252;--blue:#448aff;--purple:#e040fb;
+  --text:#eeeef5;--muted:#7878a0;--accent:#5c6bc0;
+}
+body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;min-height:100vh;overflow-x:hidden}
+
+.header{background:var(--s1);border-bottom:1px solid var(--border);padding:0 20px;height:52px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+.logo{font-family:'Space Mono',monospace;font-size:13px;font-weight:700;color:var(--green);letter-spacing:3px}
+.logo span{color:var(--muted)}
+.header-right{display:flex;align-items:center;gap:10px}
+.live-badge{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--green);background:rgba(0,230,118,.08);border:1px solid rgba(0,230,118,.2);border-radius:20px;padding:3px 10px}
+.live-dot{width:5px;height:5px;border-radius:50%;background:var(--green);animation:pulse 1.5s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+
+.ticker{background:var(--s2);border-bottom:1px solid var(--border);padding:0;overflow:hidden;height:32px;display:flex;align-items:center}
+.ticker-label{background:var(--accent);color:white;font-size:10px;font-weight:600;letter-spacing:1px;padding:0 12px;height:100%;display:flex;align-items:center;flex-shrink:0}
+.ticker-track{display:flex;gap:40px;animation:ticker 30s linear infinite;white-space:nowrap;padding-left:20px}
+@keyframes ticker{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+.ticker-item{font-size:11px;color:var(--muted);display:flex;align-items:center;gap:6px}
+.ticker-item span{color:var(--text)}
+.ticker-item .g{color:var(--green)}
+.ticker-item .r{color:var(--red)}
+.ticker-item .a{color:var(--amber)}
+
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border);border-bottom:1px solid var(--border)}
+.stat-box{background:var(--s1);padding:16px 20px;text-align:center}
+.stat-num{font-family:'Space Mono',monospace;font-size:24px;font-weight:700;line-height:1}
+.stat-label{font-size:10px;color:var(--muted);letter-spacing:1px;margin-top:4px;text-transform:uppercase}
+.stat-change{font-size:10px;margin-top:3px}
+.pos{color:var(--green)}.neg{color:var(--red)}.neu{color:var(--muted)}
+
+.tabs{display:flex;border-bottom:1px solid var(--border);background:var(--s1);overflow-x:auto;scrollbar-width:none}
+.tab{padding:12px 16px;font-size:12px;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;transition:all .2s;font-weight:500}
+.tab.active{color:var(--text);border-bottom-color:var(--accent);background:var(--s2)}
+.tab-count{background:var(--s3);color:var(--muted);border-radius:10px;padding:1px 6px;font-size:10px;margin-left:4px}
+.tab.active .tab-count{background:var(--accent);color:white}
+
+.content{padding:16px}
+
+.kanban{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:20px}
+.kanban-col{background:var(--s2);border:1px solid var(--border);border-radius:10px;overflow:hidden}
+.kanban-header{padding:10px 12px;font-size:10px;font-weight:600;letter-spacing:1px;text-transform:uppercase;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.kanban-body{padding:8px;display:flex;flex-direction:column;gap:6px;min-height:80px}
+.kanban-card{background:var(--s3);border-radius:6px;padding:8px;font-size:11px;border-left:2px solid}
+.kanban-card .co{color:var(--muted);font-size:10px;margin-top:2px}
+.kanban-card .sc{font-family:'Space Mono',monospace;font-size:10px;float:right}
+
+.section-title{font-size:11px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.section-title::after{content:'';flex:1;height:1px;background:var(--border)}
+
+.job-list{display:flex;flex-direction:column;gap:8px}
+.job-card{background:var(--s2);border:1px solid var(--border);border-radius:10px;overflow:hidden;transition:border-color .2s;cursor:pointer}
+.job-card:hover{border-color:var(--accent)}
+.job-card-top{padding:14px 16px;display:flex;gap:12px;align-items:flex-start}
+.job-info{flex:1}
+.job-title{font-size:14px;font-weight:500;line-height:1.3}
+.job-co{font-size:12px;color:var(--muted);margin-top:2px}
+.score-ring{width:46px;height:46px;flex-shrink:0;position:relative}
+.score-ring svg{transform:rotate(-90deg)}
+.score-val{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:'Space Mono',monospace;font-size:13px;font-weight:700}
+.job-meta{padding:0 16px 10px;display:flex;gap:6px;flex-wrap:wrap}
+.tag{background:var(--s3);border-radius:5px;padding:3px 8px;font-size:10px;color:var(--muted)}
+.tag-green{background:rgba(0,230,118,.08);color:var(--green)}
+.tag-amber{background:rgba(255,193,7,.08);color:var(--amber)}
+.tag-blue{background:rgba(68,138,255,.08);color:var(--blue)}
+.job-actions{padding:10px 16px;border-top:1px solid var(--border);display:flex;align-items:center;gap:8px}
+.status-badge{font-size:10px;padding:2px 8px;border-radius:4px;font-weight:500}
+.s-applied{background:rgba(0,230,118,.1);color:var(--green)}
+.s-pending{background:rgba(68,138,255,.1);color:var(--blue)}
+.s-skipped{background:rgba(120,120,160,.1);color:var(--muted)}
+.s-interview{background:rgba(224,64,251,.1);color:var(--purple)}
+.action-right{margin-left:auto;display:flex;gap:6px}
+.btn{padding:5px 12px;border-radius:6px;font-size:11px;font-weight:500;cursor:pointer;border:none;font-family:'Inter',sans-serif;transition:all .15s}
+.btn-primary{background:var(--accent);color:white}
+.btn-primary:hover{background:#7986cb}
+.btn-ghost{background:var(--s3);color:var(--muted);border:1px solid var(--border)}
+.btn-ghost:hover{color:var(--red);border-color:var(--red)}
+.btn-success{background:rgba(0,230,118,.1);color:var(--green);border:1px solid rgba(0,230,118,.2)}
+
+.chart-wrap{background:var(--s2);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:16px}
+.chart-title{font-size:11px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:12px}
+
+.fab{position:fixed;bottom:20px;right:20px;background:var(--accent);color:white;border:none;border-radius:50px;padding:10px 18px;font-size:12px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;box-shadow:0 4px 20px rgba(92,107,192,.35);display:flex;align-items:center;gap:7px;transition:all .2s;z-index:200}
+.fab:hover{transform:translateY(-2px)}
+
+.toast{position:fixed;bottom:72px;left:50%;transform:translateX(-50%) translateY(10px);background:var(--s2);border:1px solid var(--border);border-radius:8px;padding:8px 18px;font-size:12px;opacity:0;transition:all .3s;pointer-events:none;white-space:nowrap;z-index:300}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+@media(max-width:600px){
+  .stats-grid{grid-template-columns:repeat(2,1fr)}
+  .kanban{grid-template-columns:repeat(2,1fr)}
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="logo">SENTINEL <span>/ QUEUE</span></div>
+  <div class="header-right">
+    <div class="live-badge"><div class="live-dot"></div>Live</div>
+  </div>
+</div>
+
+<div class="ticker">
+  <div class="ticker-label">LIVE</div>
+  <div class="ticker-track" id="ticker-track"></div>
+</div>
+
+<div class="stats-grid">
+  <div class="stat-box">
+    <div class="stat-num" style="color:var(--green)" id="s-applied">47</div>
+    <div class="stat-label">Applied today</div>
+    <div class="stat-change pos" id="s-applied-ch">+12 vs yesterday</div>
+  </div>
+  <div class="stat-box">
+    <div class="stat-num" style="color:var(--blue)" id="s-score">84</div>
+    <div class="stat-label">Avg match score</div>
+    <div class="stat-change pos">+3 this week</div>
+  </div>
+  <div class="stat-box">
+    <div class="stat-num" style="color:var(--purple)" id="s-interview">3</div>
+    <div class="stat-label">Interviews</div>
+    <div class="stat-change pos">+1 today</div>
+  </div>
+  <div class="stat-box">
+    <div class="stat-num" style="color:var(--amber)" id="s-salary">£88k</div>
+    <div class="stat-label">Avg salary</div>
+    <div class="stat-change neu">this queue</div>
+  </div>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="setTab('all',this)">All jobs <span class="tab-count" id="tc-all">12</span></div>
+  <div class="tab" onclick="setTab('pending',this)">Pending <span class="tab-count" id="tc-pending">7</span></div>
+  <div class="tab" onclick="setTab('applied',this)">Applied <span class="tab-count" id="tc-applied">3</span></div>
+  <div class="tab" onclick="setTab('interview',this)">Interview <span class="tab-count" id="tc-interview">2</span></div>
+  <div class="tab" onclick="setTab('tap',this)">Needs tap <span class="tab-count" id="tc-tap">3</span></div>
+</div>
+
+<div class="content">
+
+  <div class="section-title">Pipeline</div>
+  <div class="kanban">
+    <div class="kanban-col">
+      <div class="kanban-header" style="color:var(--blue)">Applied <span class="tab-count">3</span></div>
+      <div class="kanban-body" id="k-applied"></div>
+    </div>
+    <div class="kanban-col">
+      <div class="kanban-header" style="color:var(--amber)">Reviewing <span class="tab-count">2</span></div>
+      <div class="kanban-body" id="k-reviewing"></div>
+    </div>
+    <div class="kanban-col">
+      <div class="kanban-header" style="color:var(--purple)">Interview <span class="tab-count">2</span></div>
+      <div class="kanban-body" id="k-interview"></div>
+    </div>
+    <div class="kanban-col">
+      <div class="kanban-header" style="color:var(--green)">Offer <span class="tab-count">0</span></div>
+      <div class="kanban-body" id="k-offer"></div>
+    </div>
+  </div>
+
+  <div class="chart-wrap">
+    <div class="chart-title">Match score trend — last 7 days</div>
+    <div style="position:relative;height:120px"><canvas id="trendChart" role="img" aria-label="Match score trend over 7 days">Scores trending upward from 74 to 87.</canvas></div>
+  </div>
+
+  <div class="section-title">Job queue</div>
+  <div class="job-list" id="job-list"></div>
+</div>
+
+<button class="fab" onclick="sendSummary()">Send Telegram summary</button>
+<div class="toast" id="toast"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+const jobs=[
+  {id:1,title:"Head of AI & Automation",co:"MyDentist",score:92,salary:"£90–110k",loc:"Remote UK",type:"auto",status:"applied",stage:"interview",url:"https://mydentist.co.uk/careers"},
+  {id:2,title:"AI Product Manager",co:"Lloyds Banking Group",score:88,salary:"£75–95k",loc:"London",type:"auto",status:"applied",stage:"reviewing",url:"#"},
+  {id:3,title:"Senior AI Engineer",co:"Confidential",score:85,salary:"£80–100k",loc:"Manchester",type:"auto",status:"pending",stage:"applied",url:"#"},
+  {id:4,title:"AI Governance Lead",co:"NHS England",score:83,salary:"£70–85k",loc:"Leeds / Remote",type:"tap",status:"pending",stage:"applied",url:"#"},
+  {id:5,title:"ML Engineer",co:"Babylon Health",score:79,salary:"£85–105k",loc:"London",type:"auto",status:"pending",stage:"applied",url:"#"},
+  {id:6,title:"Data Science Manager",co:"Sky",score:76,salary:"£75–90k",loc:"Osterley",type:"tap",status:"pending",stage:"",url:"#"},
+  {id:7,title:"AI Solutions Architect",co:"Accenture",score:74,salary:"£80–100k",loc:"UK Wide",type:"auto",status:"applied",stage:"interview",url:"#"},
+  {id:8,title:"Digital Transformation Lead",co:"HSBC",score:71,salary:"£70–85k",loc:"Canary Wharf",type:"auto",status:"applied",stage:"reviewing",url:"#"},
+  {id:9,title:"AI Product Owner",co:"Vodafone",score:70,salary:"£65–80k",loc:"Remote",type:"tap",status:"pending",stage:"",url:"#"},
+  {id:10,title:"Senior Data Analyst",co:"Experian",score:68,salary:"£55–70k",loc:"Nottingham",type:"auto",status:"skipped",stage:"",url:"#"},
+  {id:11,title:"Technology Director",co:"Capita",score:65,salary:"£90–120k",loc:"London",type:"auto",status:"pending",stage:"",url:"#"},
+  {id:12,title:"AI Delivery Manager",co:"Serco",score:62,salary:"£60–75k",loc:"Remote",type:"auto",status:"pending",stage:"",url:"#"},
+];
+
+let activeTab="all";
+
+function scoreColor(s){return s>=80?"#00e676":s>=70?"#ffc107":"#ff5252"}
+function scoreStroke(s){return s>=80?"rgba(0,230,118,.3)":s>=70?"rgba(255,193,7,.3)":"rgba(255,82,82,.3)"}
+
+function scoreRing(score){
+  const c=scoreColor(score);const r=20;const circ=2*Math.PI*r;const offset=circ*(1-score/100);
+  return `<div class="score-ring"><svg width="46" height="46" viewBox="0 0 46 46"><circle cx="23" cy="23" r="${r}" fill="none" stroke="${scoreStroke(score)}" stroke-width="3"/><circle cx="23" cy="23" r="${r}" fill="none" stroke="${c}" stroke-width="3" stroke-dasharray="${circ}" stroke-dashoffset="${offset}" stroke-linecap="round"/></svg><div class="score-val" style="color:${c}">${score}</div></div>`;
+}
+
+function statusBadge(s){
+  if(s==="applied")return'<span class="status-badge s-applied">Applied</span>';
+  if(s==="skipped")return'<span class="status-badge s-skipped">Skipped</span>';
+  if(s==="interview")return'<span class="status-badge s-interview">Interview</span>';
+  return'<span class="status-badge s-pending">Pending</span>';
+}
+
+function typeTag(t){
+  return t==="auto"?'<span class="tag tag-green">Auto-apply</span>':'<span class="tag tag-amber">Needs tap</span>';
+}
+
+function renderJobs(){
+  const list=document.getElementById("job-list");
+  let filtered=jobs;
+  if(activeTab==="pending")filtered=jobs.filter(j=>j.status==="pending");
+  else if(activeTab==="applied")filtered=jobs.filter(j=>j.status==="applied");
+  else if(activeTab==="interview")filtered=jobs.filter(j=>j.stage==="interview");
+  else if(activeTab==="tap")filtered=jobs.filter(j=>j.type==="tap"&&j.status==="pending");
+
+  list.innerHTML=filtered.map(j=>`
+    <div class="job-card" id="card-${j.id}">
+      <div class="job-card-top">
+        <div class="job-info">
+          <div class="job-title">${j.title}</div>
+          <div class="job-co">${j.co}</div>
+        </div>
+        ${scoreRing(j.score)}
+      </div>
+      <div class="job-meta">
+        <span class="tag">${j.salary}</span>
+        <span class="tag">${j.loc}</span>
+        ${typeTag(j.type)}
+        ${j.stage==="interview"?'<span class="tag" style="background:rgba(224,64,251,.08);color:#e040fb">Interview</span>':''}
+      </div>
+      <div class="job-actions">
+        ${statusBadge(j.status)}
+        <div class="action-right">
+          ${j.status!=="skipped"?`<button class="btn btn-ghost" onclick="skip(${j.id})">Skip</button>`:''}
+          ${j.status==="pending"?`<button class="btn btn-primary" onclick="openJob('${j.url}',${j.id})">Open job</button>`:''}
+          ${j.status==="applied"?`<button class="btn btn-success">Applied</button>`:''}
+        </div>
+      </div>
+    </div>
+  `).join("");
+  updateCounts();
+}
+
+function updateCounts(){
+  document.getElementById("tc-all").textContent=jobs.length;
+  document.getElementById("tc-pending").textContent=jobs.filter(j=>j.status==="pending").length;
+  document.getElementById("tc-applied").textContent=jobs.filter(j=>j.status==="applied").length;
+  document.getElementById("tc-interview").textContent=jobs.filter(j=>j.stage==="interview").length;
+  document.getElementById("tc-tap").textContent=jobs.filter(j=>j.type==="tap"&&j.status==="pending").length;
+}
+
+function setTab(t,el){
+  activeTab=t;
+  document.querySelectorAll(".tab").forEach(b=>b.classList.remove("active"));
+  el.classList.add("active");
+  renderJobs();
+}
+
+function openJob(url,id){
+  if(url&&url!="#")window.open(url,"_blank");
+  const j=jobs.find(x=>x.id===id);
+  if(j&&j.status==="pending"){j.status="applied";renderJobs();toast("Applied!")}
+}
+
+function skip(id){
+  const j=jobs.find(x=>x.id===id);
+  if(j){j.status="skipped";renderJobs();toast("Skipped")}
+}
+
+function toast(msg){
+  const t=document.getElementById("toast");t.textContent=msg;t.classList.add("show");
+  setTimeout(()=>t.classList.remove("show"),2200);
+}
+
+function sendSummary(){
+  const a=jobs.filter(j=>j.status==="applied").length;
+  const p=jobs.filter(j=>j.status==="pending").length;
+  const i=jobs.filter(j=>j.stage==="interview").length;
+  toast(`Sent: ${a} applied, ${p} pending, ${i} interviews`);
+}
+
+function renderKanban(){
+  const sections={applied:[],reviewing:[],interview:[],offer:[]};
+  jobs.forEach(j=>{
+    if(j.stage==="applied")sections.applied.push(j);
+    else if(j.stage==="reviewing")sections.reviewing.push(j);
+    else if(j.stage==="interview")sections.interview.push(j);
+    else if(j.stage==="offer")sections.offer.push(j);
+  });
+  ["applied","reviewing","interview","offer"].forEach(k=>{
+    document.getElementById("k-"+k).innerHTML=sections[k].map(j=>`
+      <div class="kanban-card" style="border-left-color:${scoreColor(j.score)}">
+        <span class="sc" style="color:${scoreColor(j.score)}">${j.score}</span>
+        ${j.title}
+        <div class="co">${j.co}</div>
+      </div>
+    `).join("")||'<div style="font-size:10px;color:var(--muted);padding:4px">None yet</div>';
+  });
+}
+
+function renderTicker(){
+  const items=[
+    `<div class="ticker-item">Bot applied to <span class="g">47 jobs</span> today</div>`,
+    `<div class="ticker-item">SENTINEL blocked <span class="r">8 RED</span> decisions</div>`,
+    `<div class="ticker-item">Top match: <span>MyDentist 92/100</span></div>`,
+    `<div class="ticker-item">Avg salary in queue: <span class="g">£88k</span></div>`,
+    `<div class="ticker-item">Interviews booked: <span class="g">3</span></div>`,
+    `<div class="ticker-item">Totaljobs: <span>18 applied</span></div>`,
+    `<div class="ticker-item">Reed: <span>14 applied</span></div>`,
+    `<div class="ticker-item">CWJobs: <span>9 applied</span></div>`,
+    `<div class="ticker-item">Duplicates blocked: <span class="a">23</span></div>`,
+    `<div class="ticker-item">Trust score: <span class="g">91%</span></div>`,
+  ];
+  const track=document.getElementById("ticker-track");
+  track.innerHTML=[...items,...items].join("");
+}
+
+function renderChart(){
+  const ctx=document.getElementById("trendChart").getContext("2d");
+  new Chart(ctx,{
+    type:"line",
+    data:{
+      labels:["Mon","Tue","Wed","Thu","Fri","Sat","Sun"],
+      datasets:[{
+        label:"Avg score",data:[74,78,80,82,85,84,87],
+        borderColor:"#448aff",backgroundColor:"rgba(68,138,255,.08)",
+        borderWidth:2,pointRadius:3,pointBackgroundColor:"#448aff",
+        fill:true,tension:0.4
+      }]
+    },
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false}},
+      scales:{
+        x:{grid:{color:"rgba(255,255,255,.05)"},ticks:{color:"#7878a0",font:{size:10}}},
+        y:{grid:{color:"rgba(255,255,255,.05)"},ticks:{color:"#7878a0",font:{size:10}},min:60,max:100}
+      }
+    }
+  });
+}
+
+renderTicker();
+renderKanban();
+renderJobs();
+renderChart();
+
+setInterval(()=>{
+  const n=document.getElementById("s-applied");
+  const v=parseInt(n.textContent)+1;
+  n.textContent=v;
+  document.getElementById("s-applied-ch").textContent=`+${v-35} vs yesterday`;
+},45000);
+</script>
+</body>
+</html>
