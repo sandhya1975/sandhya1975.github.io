@@ -1398,7 +1398,7 @@ Keep answers concise, confident, and impressive. Max 3-4 sentences. You are prou
     });
     const data = await res.json();
     typing.remove();
-    const reply = data.content?.[0]?.text || 'I can answer that — SENTINEL India verifies Indian legal citations in real time using IndianKanoon.';
+    const reply = data.text || data.content?.[0]?.text || 'I can answer that — SENTINEL India verifies Indian legal citations in real time using IndianKanoon.';
     addMessage('ai', reply);
   } catch(e) {
     typing.remove();
