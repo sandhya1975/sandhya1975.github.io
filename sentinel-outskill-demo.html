@@ -1373,28 +1373,7 @@ async function sendChat() {
     const res = await fetch('https://primary-production-70e37.up.railway.app/webhook/633ddba1-e0dc-466e-aab7-07ee503a77f4', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 1000,
-        system: `You are SENTINEL India's AI assistant, answering questions at an Outskill India demo in Bangalore.
-
-SENTINEL India is: An AI-powered legal citation verification tool for Indian courts. It checks if citations are real or fake using IndianKanoon and SCC Online. Returns RED/AMBER/GREEN verdicts. Downloads audit certificates. Built by Sandhya Yatham.
-
-KEY FACTS (use these):
-- 50M+ pending cases in Indian courts
-- 712 court cases worldwide hit by fake AI citations in 2025
-- Delhi HC rebuked a lawyer for fake AI citations
-- Bengaluru ITAT withdrew a decision due to fake AI citations  
-- Supreme Court Judge Rajesh Bindal warned against AI abuse
-- 950 Indian LegalTech startups — NONE do citation verification
-- Indian LegalTech market: $1.28B by 2026, 15.2% CAGR
-- Pricing model: £49-99/month SaaS
-- Built on: n8n, OpenAI, PostgreSQL, Railway
-- Also expanding to: Medical, Finance, Education in India
-
-Keep answers concise, confident, and impressive. Max 3-4 sentences. You are proud of this product.`,
-        messages: [{ role: 'user', content: msg }]
-      })
+      body: JSON.stringify({ chatInput: msg, sessionId: 'outskill-demo' })
     });
     const data = await res.json();
     typing.remove();
