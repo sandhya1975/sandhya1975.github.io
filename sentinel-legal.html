@@ -496,39 +496,63 @@ Output
   .chat-fab {
     width: 56px; height: 56px; border-radius: 50%;
     background: var(--black); color: var(--white);
-    border: none; font-size: 22px; cursor: pointer;
-    box-shadow: 0 4px 16px rgba(0,0,0,0.18);
+    border: 3px solid #4a9eff;
+    font-size: 22px; cursor: pointer;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.25);
     display: flex; align-items: center; justify-content: center;
     transition: transform 0.2s;
   }
   .chat-fab:hover { transform: scale(1.08); }
   .chat-box {
     display: none; position: absolute; bottom: 68px; right: 0;
-    width: 320px; background: var(--white);
-    border: 1.5px solid var(--gray-300); border-radius: 14px;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.13); overflow: hidden;
+    width: 400px; background: var(--white);
+    border: 1.5px solid var(--gray-300); border-radius: 18px;
+    box-shadow: 0 12px 48px rgba(0,0,0,0.18); overflow: hidden;
+    flex-direction: column;
   }
-  .chat-box.open { display: flex; flex-direction: column; }
+  .chat-box.open { display: flex; }
   .chat-header {
     background: var(--black); color: var(--white);
-    padding: 12px 16px; font-family: 'DM Mono', monospace;
-    font-size: 12px; letter-spacing: 0.1em;
+    padding: 14px 18px; display: flex; align-items: center; gap: 12px;
   }
+  .chat-header-icon {
+    width: 36px; height: 36px; border-radius: 50%; background: #2a2a2a;
+    display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0;
+  }
+  .chat-header-info { flex: 1; }
+  .chat-header-title { font-family: 'DM Mono', monospace; font-size: 13px; font-weight: 500; }
+  .chat-header-status { font-size: 11px; color: #88c898; margin-top: 2px; display: flex; align-items: center; gap: 5px; }
+  .chat-header-status::before { content: '●'; font-size: 8px; }
+  .chat-close-btn {
+    background: none; border: none; color: var(--white); font-size: 20px;
+    cursor: pointer; opacity: 0.6; padding: 0; line-height: 1;
+  }
+  .chat-close-btn:hover { opacity: 1; }
   .chat-messages {
-    flex: 1; padding: 14px; overflow-y: auto;
-    max-height: 260px; display: flex; flex-direction: column; gap: 8px;
+    flex: 1; padding: 16px; overflow-y: auto;
+    min-height: 300px; max-height: 360px; display: flex; flex-direction: column; gap: 10px;
   }
-  .chat-msg { font-size: 13px; line-height: 1.5; padding: 8px 12px; border-radius: 8px; max-width: 90%; }
-  .chat-msg.bot { background: var(--gray-100); color: var(--black); align-self: flex-start; }
-  .chat-msg.user { background: var(--black); color: var(--white); align-self: flex-end; }
+  .chat-msg { font-size: 14px; line-height: 1.6; padding: 10px 14px; border-radius: 12px; max-width: 88%; }
+  .chat-msg.bot { background: var(--gray-100); color: var(--black); align-self: flex-start; border-bottom-left-radius: 4px; }
+  .chat-msg.user { background: var(--black); color: var(--white); align-self: flex-end; border-bottom-right-radius: 4px; }
+  .chat-suggestions {
+    padding: 4px 16px 14px; display: flex; flex-wrap: wrap; gap: 8px;
+  }
+  .chat-suggestion {
+    font-size: 12px; font-family: 'DM Mono', monospace;
+    padding: 6px 14px; border-radius: 20px;
+    border: 1px solid var(--gray-300); background: transparent;
+    color: var(--gray-700); cursor: pointer; transition: all 0.15s;
+  }
+  .chat-suggestion:hover { background: var(--black); color: var(--white); border-color: var(--black); }
   .chat-input-row { display: flex; border-top: 1px solid var(--gray-100); }
   .chat-input {
-    flex: 1; border: none; padding: 10px 14px; font-size: 13px;
+    flex: 1; border: none; padding: 13px 16px; font-size: 13px;
     font-family: 'DM Sans', sans-serif; outline: none; background: var(--white);
   }
   .chat-send {
     background: var(--black); color: var(--white); border: none;
-    padding: 0 16px; cursor: pointer; font-size: 16px;
+    padding: 0 20px; cursor: pointer; font-size: 18px;
   }
 </style>
 </head>
@@ -783,13 +807,26 @@ ${'='.repeat(50)}`;
 </script>
 <!-- FLOATING CHATBOT -->
 <div class="chat-widget">
-  <div class="chat-box" id="chatBox">
-    <div class="chat-header">⚖️ SENTINEL Assistant</div>
+  <div class="chat-box open" id="chatBox">
+    <div class="chat-header">
+      <div class="chat-header-icon">⚖️</div>
+      <div class="chat-header-info">
+        <div class="chat-header-title">SENTINEL Legal AI</div>
+        <div class="chat-header-status">Online · Ready to answer</div>
+      </div>
+      <button class="chat-close-btn" onclick="toggleChat()">×</button>
+    </div>
     <div class="chat-messages" id="chatMessages">
-      <div class="chat-msg bot">Hi! Ask me anything about AI citation risks or how SENTINEL works.</div>
+      <div class="chat-msg bot">Hello. I am SENTINEL Legal. Ask me anything about AI citation verification, how SENTINEL works, or the UK legal hallucination crisis.</div>
+    </div>
+    <div class="chat-suggestions" id="chatSuggestions">
+      <button class="chat-suggestion" onclick="askSuggestion('How does it verify?')">How does it verify?</button>
+      <button class="chat-suggestion" onclick="askSuggestion('UK High Court case')">UK High Court case</button>
+      <button class="chat-suggestion" onclick="askSuggestion('What is AMBER?')">What is AMBER?</button>
+      <button class="chat-suggestion" onclick="askSuggestion('Who built this?')">Who built this?</button>
     </div>
     <div class="chat-input-row">
-      <input class="chat-input" id="chatInput" placeholder="Ask a question..." onkeydown="if(event.key==='Enter')sendChat()">
+      <input class="chat-input" id="chatInput" placeholder="Ask about SENTINEL Legal..." onkeydown="if(event.key==='Enter')sendChat()">
       <button class="chat-send" onclick="sendChat()">→</button>
     </div>
   </div>
@@ -802,6 +839,12 @@ const CHAT_WEBHOOK = "https://primary-production-70e37.up.railway.app/webhook/se
 function toggleChat() {
   const box = document.getElementById('chatBox');
   box.classList.toggle('open');
+}
+
+function askSuggestion(text) {
+  document.getElementById('chatSuggestions').style.display = 'none';
+  document.getElementById('chatInput').value = text;
+  sendChat();
 }
 
 async function sendChat() {
@@ -822,8 +865,8 @@ async function sendChat() {
       body: JSON.stringify({ chatInput: msg })
     });
     const text = await res.text();
-    let reply = text;
-    try { reply = JSON.parse(text); if (typeof reply === 'object') reply = reply.output || reply.text || JSON.stringify(reply); } catch(e){}
+    let reply = text.trim().replace(/^=+/, '');
+    try { const j = JSON.parse(reply); if (typeof j === 'object') reply = j.output || j.text || JSON.stringify(j); } catch(e){}
     document.getElementById('typing').textContent = reply;
   } catch(e) {
     document.getElementById('typing').textContent = 'Sorry, connection error.';
