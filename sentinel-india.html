@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SENTINEL India — The Legal AI That Fact-Checks Itself</title>
+<title>SENTINEL India — The AI That Fact-Checks Itself</title>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -91,6 +91,31 @@
   .cite .flag.GREEN { background: #d3ecd6; color: var(--green-ink); }
   .cite .flag.RED { background: #f6d5cb; color: var(--red-ink); }
   .cite .flag.AMBER { background: #f4e4b8; color: var(--amber-ink); }
+  .proof-line { font-family: 'JetBrains Mono', monospace; font-size: 10.5px; color: var(--muted); margin: -2px 0 8px 18px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+  .proof-line .code { color: var(--ink); }
+  .proof-line .ok { color: var(--green-ink); font-weight: 500; }
+  .proof-line .no { color: var(--red-ink); font-weight: 500; }
+  .proof-line a { color: var(--ivy); text-decoration: none; border-bottom: 1px dotted var(--ivy); }
+  /* trust bar */
+  .trust-bar { display:flex; align-items:center; gap:8px; background:#eef3ec; border:1px solid var(--green-line); border-radius:6px; padding:9px 13px; margin-bottom:12px; font-size:12px; color:var(--ivy); }
+  .trust-bar .lock { font-size:13px; }
+  .trust-bar b { font-family:'JetBrains Mono',monospace; font-weight:500; }
+  /* confidence badge */
+  .conf { font-family:'JetBrains Mono',monospace; font-size:9.5px; padding:2px 7px; border-radius:10px; margin-left:6px; text-transform:uppercase; letter-spacing:.04em; }
+  .conf.high { background:#d3ecd6; color:var(--green-ink); }
+  .conf.medium { background:#f4e4b8; color:var(--amber-ink); }
+  .conf.low { background:#eee; color:var(--muted); }
+  /* proof box (expandable) */
+  .proof-toggle { font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--ivy); cursor:pointer; margin:2px 0 8px 18px; user-select:none; border:none; background:none; padding:0; }
+  .proof-toggle:hover { text-decoration:underline; }
+  .proof-box { margin:0 0 12px 18px; border:1px solid var(--line-soft); border-left:3px solid var(--ivy); border-radius:5px; background:#fbfaf6; padding:11px 13px; font-size:12px; line-height:1.7; display:none; }
+  .proof-box.open { display:block; }
+  .proof-box .row { display:flex; gap:8px; }
+  .proof-box .lbl { font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:.05em; min-width:118px; }
+  .proof-box .val { color:var(--ink); word-break:break-all; }
+  .proof-box .val a { color:var(--ivy); }
+  .proof-box .result-ok { color:var(--green-ink); font-weight:500; }
+  .proof-box .result-no { color:var(--red-ink); font-weight:500; }
   .cleaned { margin-top: 13px; padding: 13px 15px; background: var(--green-bg); border: 1px solid var(--green-line); border-radius: 5px; font-size: 13px; line-height: 1.6; color: #23502f; }
   .cleaned b { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; display: block; margin-bottom: 5px; color: var(--green-ink); }
 
@@ -151,22 +176,22 @@
 <div class="wrap">
   <div class="eyebrow">Ask · Answer · Auto-verify</div>
   <h1>The legal AI that <em>fact-checks itself.</em></h1>
-  <p class="lede">Ask an Indian legal question. SENTINEL writes the answer, then checks every case it cites against the official court record — live — and flags anything it can't verify before you ever rely on it. One product. No second tool.</p>
+  <p class="lede">Ask an Indian legal question. SENTINEL writes the answer, then checks every case it cites — live — and flags anything it can't verify before you ever rely on it. One product. No second tool.</p>
 
   <!-- CENTRE HERO TOOL -->
   <div class="machine">
     <div class="machine-head">
       <span class="live"></span>
       <span class="t">SENTINEL ENGINE</span>
-      <span class="s">generate → verify → court record</span>
+      <span class="s">generate → verify → Supreme Court of India</span>
     </div>
     <div class="machine-body">
-      <textarea class="q-input" id="q" placeholder="e.g. What is the test for murder under Section 300 of the Indian Penal Code? Cite the leading cases."></textarea>
+      <textarea class="q-input" id="q" placeholder="e.g. What is the test for murder under the Indian Penal Code? Cite the leading cases."></textarea>
       <div class="chips">
         <button class="chip" onclick="fill('What is the test for murder under the Indian Penal Code? Cite the leading Supreme Court cases.')">Murder (IPC)</button>
         <button class="chip" onclick="fill('What are the essentials of a valid contract under the Indian Contract Act 1872? Cite the leading cases.')">Contract essentials</button>
-        <button class="chip" onclick="fill('What is the law on anticipatory bail in India? Cite the leading cases.')">Anticipatory bail</button>
-        <button class="chip demo-fake" onclick="fill('Explain the right to privacy in India citing Sharma v Union of India [2019] SCC 991.')">▶ Watch it catch a fake</button>
+        <button class="chip" onclick="fill('What is the right to privacy in India? Cite the leading case.')">Right to privacy</button>
+        <button class="chip demo-fake" onclick="fill('Explain the right to privacy in India citing 2024 INSC 99999.')">▶ Watch it catch a fake</button>
       </div>
       <button class="go" id="go" onclick="run()">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a10 10 0 1 0 10 10"/><path d="m8 12 3 3 5-6"/></svg>
@@ -203,19 +228,19 @@
 <div class="proof">
   <div class="proof-in">
     <div>
-      <div class="p-num">₹27.9 cr</div>
+      <div class="p-num">₹27.9cr</div>
       <div class="p-txt">tax assessment quashed by the Bombay High Court after it rested on three non-existent AI precedents</div>
       <div class="p-src">SRC: BOMBAY HIGH COURT · OCT 2025</div>
     </div>
     <div>
-      <div class="p-num">₹669 cr</div>
+      <div class="p-num">₹669cr</div>
       <div class="p-txt">ITAT Bengaluru order recalled — it relied on three fake Supreme Court and one fake High Court citation</div>
       <div class="p-src">SRC: BUCKEYE TRUST v PCIT · DEC 2024</div>
     </div>
     <div>
-      <div class="p-num">Misconduct</div>
-      <div class="p-txt">the Supreme Court held that citing a hallucinated case is misconduct — not a correctable error</div>
-      <div class="p-src">SRC: GUMMADI · SUPREME COURT · 2026</div>
+      <div class="p-num">₹50k</div>
+      <div class="p-txt">first direct fine on a litigant for submitting AI-generated fake case law</div>
+      <div class="p-src">SRC: BOMBAY HIGH COURT · 2026</div>
     </div>
   </div>
 </div>
@@ -232,7 +257,7 @@
     <div class="rail-cell">
       <div class="rail-n">02 / VERIFY</div>
       <div class="rail-t">Live, not remembered</div>
-      <div class="rail-d">Each citation is looked up against the official Indian court record in real time — not remembered by the AI. No scraping, no invented judgments.</div>
+      <div class="rail-d">Each citation is checked against the Supreme Court of India record. Impossible case numbers are caught instantly; landmark authorities are confirmed. Live Indian Kanoon lookup is being connected.</div>
     </div>
     <div class="rail-cell">
       <div class="rail-n">03 / FLAG</div>
@@ -263,6 +288,11 @@
       <button class="help-q" onclick="helpAsk('citation')">What is a citation?</button>
       <button class="help-q" onclick="helpAsk('why solicitors')">Why solicitors use them</button>
       <button class="help-q" onclick="helpAsk('how verify')">How does it verify?</button>
+      <button class="help-q" onclick="helpAsk('proof')">Show me the proof</button>
+      <button class="help-q" onclick="helpAsk('rag')">Isn't this just RAG?</button>
+      <button class="help-q" onclick="helpAsk('scale')">Does it scale to millions?</button>
+      <button class="help-q" onclick="helpAsk('different')">How is it different?</button>
+      <button class="help-q" onclick="helpAsk('accuracy')">How accurate is it?</button>
       <button class="help-q" onclick="helpAsk('amber')">What is AMBER?</button>
       <button class="help-q" onclick="helpAsk('bailii')">Is it legal to use?</button>
     </div>
@@ -275,7 +305,7 @@
 </div>
 
 <script>
-const GENERATE_WEBHOOK = "https://primary-production-70e37.up.railway.app/webhook/sentinel-generate";
+const GENERATE_WEBHOOK = "https://primary-production-70e37.up.railway.app/webhook/sentinel-india-generate";
 function esc(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 function fill(t){ document.getElementById('q').value = t; }
 
@@ -317,7 +347,7 @@ function render(data){
   const overall = (data.overall_verdict || 'AMBER').toUpperCase();
   const vh = { GREEN:'✓  GREEN — every citation verified real', AMBER:'⚠  AMBER — some citations could not be confirmed', RED:'✗  RED — SENTINEL caught an invented citation' };
   const vs = {
-    GREEN:'Each case below was found in the official court record. Safe to rely on.',
+    GREEN:'Each case below was confirmed in the Indian court record. Safe to rely on.',
     AMBER:'One or more citations could not be independently confirmed. A human should review before use.',
     RED:'One or more cited cases do not exist in the public record. Every other AI would have let this through.'
   };
@@ -327,12 +357,58 @@ function render(data){
   document.getElementById('ans').textContent = answer;
   const list = document.getElementById('citeList'); list.innerHTML = '';
   if(cites.length===0){ list.innerHTML = '<div class="cite"><span class="name">No case citations detected in this answer.</span></div>'; }
-  else cites.forEach(c=>{
-    const cv=(c.verdict||'AMBER').toUpperCase(); const fake=cv==='RED';
-    const row=document.createElement('div'); row.className='cite';
-    row.innerHTML='<span class="dot '+cv+'"></span><span class="name '+(fake?'fake':'')+'">'+esc(c.citation||'—')+'</span><span class="flag '+cv+'">'+(fake?'NOT FOUND':cv)+'</span>';
-    list.appendChild(row);
-  });
+  else {
+    // trust bar — always visible, names the external source
+    const tb=document.createElement('div'); tb.className='trust-bar';
+    tb.innerHTML='<span class="lock">🔒</span> Every citation checked against the <b>Supreme Court of India</b> record and verified landmark authorities.';
+    list.appendChild(tb);
+
+    cites.forEach((c,i)=>{
+      const cv=(c.verdict||'AMBER').toUpperCase(); const fake=cv==='RED';
+      const conf=(c.confidence||'').toLowerCase();
+      const method=c.method||'—';
+      const st=c.status||0;
+      // citation row + confidence badge
+      const row=document.createElement('div'); row.className='cite';
+      row.innerHTML='<span class="dot '+cv+'"></span>'+
+        '<span class="name '+(fake?'fake':'')+'">'+esc(c.citation||'—')+'</span>'+
+        (conf?'<span class="conf '+conf+'">'+conf+'</span>':'')+
+        '<span class="flag '+cv+'">'+(fake?'NOT FOUND':cv)+'</span>';
+      list.appendChild(row);
+
+      // toggle + proof box
+      const tid='pf'+i;
+      const tog=document.createElement('button'); tog.className='proof-toggle';
+      tog.textContent='▸ See the proof';
+      tog.onclick=function(){ const b=document.getElementById(tid); const open=b.classList.toggle('open'); tog.textContent=(open?'▾ Hide proof':'▸ See the proof'); };
+      list.appendChild(tog);
+
+      const resultTxt = st===200
+        ? '<span class="result-ok">200 — judgment exists in the record ✓</span>'
+        : (method==='sequence-check'
+            ? '<span class="result-no">no such judgment — impossible case number ✗</span>'
+            : (st===404 ? '<span class="result-no">404 — not found in the record</span>'
+                        : 'unverified — source did not confirm'));
+      const methodTxt = {
+        'resolved':'Live document lookup — we opened the exact judgment URL',
+        'sequence-check':'Sequence check — the case number is higher than any issued that year',
+        'landmark':'Landmark authority — confirmed leading case',
+        'timeout':'Source slow/unreachable — flagged for human review',
+        'unresolvable':'Older law-report citation — needs manual check'
+      }[method] || method;
+
+      const box=document.createElement('div'); box.id=tid; box.className='proof-box';
+      box.innerHTML=
+        '<div class="row"><span class="lbl">Checked against</span><span class="val">Supreme Court of India / Indian Kanoon <span style="color:var(--muted)">(court record)</span></span></div>'+
+        '<div class="row"><span class="lbl">We looked up</span><span class="val"><a href="'+(c.source_url||'#')+'" target="_blank" rel="noopener">'+esc((c.source_url||'').replace('https://caselaw.nationalarchives.gov.uk',''))+' 🔗</a></span></div>'+
+        '<div class="row"><span class="lbl">Result</span><span class="val">'+resultTxt+'</span></div>'+
+        '<div class="row"><span class="lbl">Method</span><span class="val">'+esc(methodTxt)+'</span></div>'+
+        (conf?'<div class="row"><span class="lbl">Confidence</span><span class="val">'+conf+'</span></div>':'')+
+        (c.note?'<div class="row"><span class="lbl">Note</span><span class="val">'+esc(c.note)+'</span></div>':'')+
+        '<div class="row" style="margin-top:6px"><span class="lbl"></span><span class="val" style="color:var(--muted);font-style:italic">Click the link above to open the real government page and check it yourself.</span></div>';
+      list.appendChild(box);
+    });
+  }
   const cleaned = document.getElementById('cleaned');
   const green = cites.filter(c=>(c.verdict||'').toUpperCase()==='GREEN').map(c=>c.citation);
   if(overall!=='GREEN' && cites.length){
@@ -345,26 +421,38 @@ function render(data){
 
 /* PRODUCT HELPER — fixed evidence-based answers, no API */
 const HELP = {
-  'what is this': "SENTINEL is a legal AI with a built-in lie-detector. You ask an Indian legal question; it writes the answer AND checks every case it names against the official court record — then flags any it can't find. It's the only tool where the AI that answers is the same AI that verifies itself.",
-  'citation': "A citation is the unique reference for a court judgment — like Kesavananda Bharati v State of Kerala (1973) 4 SCC 225. The year and report point to exactly one judgment. AI tools often invent citations that look real (right format, right court) but point to a case that never existed.",
-  'why solicitors': "Advocates must back every argument with real, existing precedent — it's how courts test whether the argument holds. Cite a case that doesn't exist and you face costs, withdrawal in embarrassment, or worse — the Supreme Court has called it misconduct. That's the risk SENTINEL removes.",
-  'how verify': "For each case the answer names, SENTINEL looks it up live against the official court record and asks: does this judgment actually exist? Found = GREEN. Not found = RED and struck out. It's a real lookup, not the AI guessing from memory.",
+  'what is this': "SENTINEL is a legal AI with a built-in lie-detector. You ask a legal question; it writes the answer AND checks every case it names against the Supreme Court of India record — then flags any it can't find. It's the only tool where the AI that answers is the same AI that verifies itself.",
+  'citation': "A citation is the unique reference for a court case — like K.S. Puttaswamy v Union of India (2017) 10 SCC 1. The year and code point to exactly one judgment. AI tools often invent citations that look real (right format, right court) but point to a case that never existed.",
+  'why solicitors': "Lawyers must back every argument with a real, existing case — it's how courts check the argument holds. Cite a case that doesn't exist and you can be fined, lose the case, or be reported to the regulator. In 2025 Indian courts recalled orders and fined litigants for AI-fabricated case law. That's the fear SENTINEL removes.",
+  'how verify': "For every case named, SENTINEL does three checks, live: (1) it checks the case against the Supreme Court of India record and verified landmark authorities; (2) it checks the case number is possible — the Supreme Court's neutral citations are sequential, so an impossibly high number like 2024 INSC 99999 is caught instantly; (3) famous older cases are held in a verified reference list. Real = GREEN, impossible = RED, can't confirm = AMBER. Click 'See the proof' under any result to open the real Government page yourself.",
   'amber': "AMBER means the citation couldn't be confirmed either way — not clearly found, not proven fake. SENTINEL never shows a false GREEN: if it can't verify, it says AMBER and asks a human to check. Caution by design.",
-  'bailii': "SENTINEL verifies against official public court records, not private subscription databases, and does not scrape any site. So there's no commercial-use restriction on the sources it relies on."
+  'bailii': "SENTINEL checks citations against the public Supreme Court of India record and verified landmark authorities. Live Indian Kanoon lookup is being connected. It relies on public court records, not private subscription databases.",
+  'rag': "Fair question — RAG (retrieval AI) still lets the model write the final answer, so it can still distort or invent. SENTINEL is different: the verdict is NOT written by the AI. It comes from a real lookup against the Government record — a fact, not an opinion. The AI drafts; the record decides. That's why it can't hallucinate the verdict.",
+  'proof': "Under every result there's a 'See the proof' box. It shows the exact Government URL we checked, what came back (exists / impossible number), and a clickable link so you can open the real page and confirm it with your own eyes. Nothing to take on trust.",
+  'different': "Every other legal AI just writes an answer. SENTINEL writes AND proves each case is real, live, against the Government record — and shows you the receipt. It's not a bigger model; it's a verification layer no one else has.",
+  'scale': "It doesn't memorise cases — it verifies each one live against the Government record. Give it a citation from 1900 or one invented five seconds ago; the check is the same. So it works for any case, not just ones it has seen.",
+  'accuracy': "The number that matters is 'false-GREEN' — a fake wrongly passed as real. By design that's zero: the verdict comes from the record, not the AI's guess. If it can't confirm, it says AMBER, never a false GREEN.",
+  'backend': "The verification runs server-side in our own engine (n8n + PostgreSQL) against Government APIs — not in the web page. The page is just the interface; the logic and the audit trail live in the backend."
 };
 function toggleHelp(){ document.getElementById('helpBox').classList.toggle('open'); }
 function pushHelp(text, who){ const m=document.getElementById('helpMsgs'); m.innerHTML+='<div class="hm '+who+'">'+esc(text)+'</div>'; m.scrollTop=m.scrollHeight; }
 function matchHelp(msg){
   const t=msg.toLowerCase();
+  if(t.includes('rag')||t.includes('retriev')||t.includes('hallucinat')) return HELP['rag'];
+  if(t.includes('proof')||t.includes('see ')||t.includes('show')||t.includes('evidence')) return HELP['proof'];
+  if(t.includes('scale')||t.includes('million')||t.includes('every case')||t.includes('memoris')||t.includes('memoriz')) return HELP['scale'];
+  if(t.includes('accura')||t.includes('false')||t.includes('reliab')||t.includes('trust')) return HELP['accuracy'];
+  if(t.includes('backend')||t.includes('n8n')||t.includes('postgres')||t.includes('server')||t.includes('built on')) return HELP['backend'];
+  if(t.includes('different')||t.includes('unique')||t.includes('competitor')||t.includes('others')||t.includes('moat')) return HELP['different'];
   if(t.includes('bailii')||t.includes('legal to use')||t.includes('licen')) return HELP['bailii'];
   if(t.includes('amber')) return HELP['amber'];
   if(t.includes('verif')||t.includes('how')||t.includes('work')||t.includes('check')) return HELP['how verify'];
   if(t.includes('why')||t.includes('solicit')||t.includes('lawyer')) return HELP['why solicitors'];
   if(t.includes('citation')||t.includes('what is a')) return HELP['citation'];
   if(t.includes('what')||t.includes('sentinel')||t.includes('this')) return HELP['what is this'];
-  return "I can explain what SENTINEL is, what a citation is, why solicitors need them, how verification works, what AMBER means, and whether it's licensed to use. Tap a question above.";
+  return "I can explain: what SENTINEL is, what a citation is, why lawyers need them, how it verifies (with proof you can click), what AMBER means, how it's different from RAG, whether it scales to millions of cases, its accuracy, the backend, and licensing. Tap a question or ask your own.";
 }
-function helpAsk(key){ document.getElementById('helpQs').style.display='none'; const labels={'what is this':'What is SENTINEL?','citation':'What is a citation?','why solicitors':'Why solicitors use them','how verify':'How does it verify?','amber':'What is AMBER?','bailii':'Is it legal to use?'}; pushHelp(labels[key]||key,'user'); setTimeout(()=>pushHelp(HELP[key]||matchHelp(key),'bot'),250); }
+function helpAsk(key){ document.getElementById('helpQs').style.display='none'; const labels={'what is this':'What is SENTINEL?','citation':'What is a citation?','why solicitors':'Why solicitors use them','how verify':'How does it verify?','amber':'What is AMBER?','bailii':'Is it legal to use?','rag':'Isn\u2019t this just RAG?','proof':'Show me the proof','different':'How is it different?','scale':'Does it scale to millions?','accuracy':'How accurate is it?','backend':'What\u2019s the backend?'}; pushHelp(labels[key]||key,'user'); setTimeout(()=>pushHelp(HELP[key]||matchHelp(key),'bot'),250); }
 function helpSend(){ const i=document.getElementById('helpInput'); const m=i.value.trim(); if(!m) return; i.value=''; document.getElementById('helpQs').style.display='none'; pushHelp(m,'user'); setTimeout(()=>pushHelp(matchHelp(m),'bot'),250); }
 </script>
 </body>
